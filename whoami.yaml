@@ -1,0 +1,52 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: whoami
+  labels:
+    app: whoami
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: whoami
+  template:
+    metadata:
+      labels:
+        app: whoami
+    spec:
+      serviceAccountName: default
+      containers:
+      - image: jwilder/whoami
+        name: whoami
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: whoami-port
+          containerPort: 8000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: whoami
+spec:
+  ports:
+  - name: http
+    targetPort: whoami-port
+    port: 8000
+  selector:
+    app: whoami
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: whoami-ingress
+  annotations:
+    kubernetes.io/ingress.class: traefik
+spec:
+  rules:
+  - host: whoami.infrash.tech
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: whoami
+          servicePort: 8000

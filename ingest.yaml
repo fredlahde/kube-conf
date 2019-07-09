@@ -1,0 +1,54 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: ingest
+  labels:
+    app: ingest
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ingest
+  template:
+    metadata:
+      labels:
+        app: ingest
+    spec:
+      serviceAccountName: default
+      containers:
+      - image: registry.ash.tv/admin/ingest
+        name: ingest
+        imagePullPolicy: Always
+        ports:
+        - name: ingest-port
+          containerPort: 8080
+      imagePullSecrets:
+        - name: regcred
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ingest
+spec:
+  ports:
+  - name: http
+    targetPort: ingest-port
+    port: 8080
+  selector:
+    app: ingest
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: ingest-ingress
+  annotations:
+    kubernetes.io/ingress.class: traefik
+spec:
+  rules:
+  - host: ingest.infrash.tech
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: ingest
+          servicePort: 8080

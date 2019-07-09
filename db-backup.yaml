@@ -1,0 +1,54 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: silver
+  labels:
+    app: silver
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: silver
+  template:
+    metadata:
+      labels:
+        app: silver
+    spec:
+      serviceAccountName: default
+      containers:
+      - image: registry.ash.tv/admin/silver
+        name: silver
+        imagePullPolicy: Always
+        ports:
+        - name: silver-port
+          containerPort: 8080
+      imagePullSecrets:
+        - name: regcred
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: silver
+spec:
+  ports:
+  - name: http
+    targetPort: silver-port
+    port: 8080
+  selector:
+    app: silver
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: silver-ingress
+  annotations:
+    kubernetes.io/ingress.class: traefik
+spec:
+  rules:
+  - host: silver.infrash.tech
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: silver
+          servicePort: 8080

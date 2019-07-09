@@ -1,0 +1,17 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  labels:
+    app: traefik
+  name: wrinkled-narwhal-traefik-dashboard
+  namespace: default
+spec:
+  rules:
+  - host: dashboard.infrash.tech
+    http:
+      paths:
+      - backend:
+          serviceName: wrinkled-narwhal-traefik-dashboard
+          servicePort: 80
+status:
+  loadBalancer: {}

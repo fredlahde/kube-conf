@@ -1,0 +1,54 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: testsite
+  labels:
+    app: testsite
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: testsite
+  template:
+    metadata:
+      labels:
+        app: testsite
+    spec:
+      serviceAccountName: default
+      containers:
+      - image: registry.ash.tv/admin/testsite
+        name: testsite
+        imagePullPolicy: Always
+        ports:
+        - name: testsite-port
+          containerPort: 80
+      imagePullSecrets:
+        - name: regcred
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: testsite
+spec:
+  ports:
+  - name: http
+    targetPort: testsite-port
+    port: 80
+  selector:
+    app: testsite
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: testsite-ingress
+  annotations:
+    kubernetes.io/ingress.class: traefik
+spec:
+  rules:
+  - host: testsite.infrash.tech
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: testsite
+          servicePort: "http"
